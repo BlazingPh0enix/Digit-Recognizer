@@ -37,3 +37,7 @@ pip install -r requirements.txt
 ```
 
 Please make sure to install these libraries before running the application.
+
+## Note
+
+Please note that the predictions made by the application may not be 100% accurate. The accuracy of the predictions depends on the quality of the input image and the training data used to train the model.
