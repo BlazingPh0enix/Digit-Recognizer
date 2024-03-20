@@ -7,39 +7,47 @@ from torchvision import transforms
 import torch.nn as nn
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QWidget
-from torch.nn import Module as NeuralNetwork
 
-#Setting up the device
+'''#Setting up the device
 device = (
     "cuda"
     if torch.cuda.is_available()
     else "mps"
     if torch.backends.mps.is_available()
     else "cpu"
-)
+)'''
+device = 'cpu'
 
-#Defining the model architecture
-class NeuralNetwork(nn.Module):
+#Defining the model
+class ConvolutionalNeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28*28, 512),
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Linear(512, 512),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Dropout2d(p=0.2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Linear(512, 10)
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Dropout2d(p=0.2),
+        )
+        self.fc_layers = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 7 * 7, 128),
+            nn.ReLU(),
+            nn.Linear(128, 10)
         )
 
     def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+        x = self.conv_layers(x)
+        x = self.fc_layers(x)
+        return x
 
 #Loading the Trained model
-model = NeuralNetwork().to(device)
-model.load_state_dict(torch.load(r"F:\Uni\Projects\Digit Recognizer\model.pth"))
-model.eval()
+model = ConvolutionalNeuralNetwork()
+model.load_state_dict(torch.load("model.pth", map_location=torch.device(device)))
+model.to(device)
 
 #Defining the classes
 classes = [
